@@ -1,0 +1,31 @@
+version: 2
+updates:
+  # Keep npm dependencies patched and up to date
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    # Bundle related updates into fewer PRs so there's less to review
+    groups:
+      remix:
+        patterns:
+          - "@remix-run/*"
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+      dev-dependencies:
+        dependency-type: "development"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+
+  # Keep the GitHub Actions themselves patched
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
