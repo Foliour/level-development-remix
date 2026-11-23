@@ -1,0 +1,52 @@
+{
+  "title": "Our Taiwan Adventure",
+  "intro": "In 2026 our family spent two weeks exploring Taiwan. Scroll down to follow along, one stop at a time!",
+  "chapters": [
+    {
+      "title": "Raohe Night Market",
+      "subtitle": "Taipei",
+      "blocks": [
+        {
+          "type": "getty",
+          "embed": "PASTE THE EMBED CODE FROM GETTY'S </> BUTTON HERE",
+          "caption": "Raohe Street Night Market lit up after dark"
+        },
+        {
+          "type": "text",
+          "text": "We went to the Raohe Night Market, one of the most popular night markets in Taipei. It's one long street packed with food stalls and games, and it gets busy as soon as the sun goes down.\n\nAt the entrance is a colourful temple, and right next to it is a famous stall that bakes pepper buns in a clay oven."
+        },
+        {
+          "type": "photos",
+          "files": [
+            { "file": "raohe-01.jpg", "caption": "Waiting in line for pepper buns" },
+            "raohe-02.jpg",
+            "raohe-03.jpg"
+          ]
+        },
+        {
+          "type": "text",
+          "text": "After dinner we tried some of the games..."
+        },
+        {
+          "type": "photos",
+          "files": ["raohe-04.jpg", "raohe-05.jpg"]
+        }
+      ]
+    },
+    {
+      "title": "Taipei 101",
+      "blocks": [
+        {
+          "type": "image",
+          "src": "https://upload.wikimedia.org/EXAMPLE.jpg",
+          "alt": "Taipei 101 tower above the city",
+          "caption": "Taipei 101 was once the tallest building in the world",
+          "credit": "Photo: Photographer Name / Wikimedia Commons, CC BY-SA 4.0",
+          "creditUrl": "https://commons.wikimedia.org/wiki/File:EXAMPLE.jpg"
+        },
+        { "type": "text", "text": "Next we went up Taipei 101..." },
+        { "type": "photos", "files": ["taipei101-01.jpg"] }
+      ]
+    }
+  ]
+}

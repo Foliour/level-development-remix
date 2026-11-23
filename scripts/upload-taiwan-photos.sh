@@ -5,8 +5,13 @@
 # Usage:  scripts/upload-taiwan-photos.sh /path/to/photo-folder
 # Needs:  ImageMagick (`brew install imagemagick`) and `npx wrangler login` done once.
 #
-# Files are uploaded in alphabetical order of their names, which is the order
-# they appear in the scrapbook (rename them 001-..., 002-... to control order).
+# Put story.json (see scripts/story.example.json) in the same folder to group
+# photos into chapters with narrative text. Photo names in story.json must
+# match the uploaded names: lowercase, spaces -> dashes, ending in .jpg.
+#
+# To update just the story text without re-uploading photos:
+#   npx wrangler r2 object put taiwan2026-photos/photos/story.json \
+#     --file story.json --content-type application/json --remote
 set -euo pipefail
 
 SRC="${1:?Usage: $0 /path/to/photo-folder}"
@@ -40,10 +45,12 @@ for f in "${files[@]}"; do
     --content-type image/jpeg --remote >/dev/null
 done
 
-if [ -f "$SRC/captions.json" ]; then
-  echo "  uploading captions.json"
-  npx wrangler r2 object put "$BUCKET/photos/captions.json" --file "$SRC/captions.json" \
-    --content-type application/json --remote >/dev/null
-fi
+for json in story.json captions.json; do
+  if [ -f "$SRC/$json" ]; then
+    echo "  uploading $json"
+    npx wrangler r2 object put "$BUCKET/photos/$json" --file "$SRC/$json" \
+      --content-type application/json --remote >/dev/null
+  fi
+done
 
 echo "Done. Uploaded ${#files[@]} photos to $BUCKET."
