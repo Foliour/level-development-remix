@@ -8,5 +8,11 @@
   "observability": {
     "enabled": true
   },
-  "upload_source_maps": true
+  "upload_source_maps": true,
+  "r2_buckets": [
+    {
+      "binding": "PHOTOS",
+      "bucket_name": "taiwan2026-photos"
+    }
+  ]
 }
