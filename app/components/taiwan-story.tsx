@@ -1,6 +1,8 @@
 import { Form } from "@remix-run/react";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Chapter, Photo, Story, StoryBlock } from "~/lib/taiwan-story.server";
+import { FlightGlobe } from "~/components/flight-globe";
+import { IllustrationBlock } from "~/components/illustrations";
 
 /* ---------- Scroll-reveal ---------- */
 
@@ -63,18 +65,39 @@ function BigPictureLabel() {
   );
 }
 
+// Getty's embed draws at a fixed pixel size and pads anything larger with a
+// dark box, so render it at its native size and scale it to fit the column.
 function GettyBlock({ block }: { block: Extract<StoryBlock, { type: "getty" }> }) {
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState<number | null>(null);
+
+  useEffect(() => {
+    const box = boxRef.current;
+    if (!box) return;
+    const fit = () => setScale(box.clientWidth / block.width);
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(box);
+    return () => ro.disconnect();
+  }, [block.width]);
+
   return (
     <figure className="mx-auto max-w-4xl">
       <BigPictureLabel />
-      <div className="bg-white p-2 shadow-lg sm:p-3">
+      <div
+        ref={boxRef}
+        className="overflow-hidden rounded-xl bg-stone-200 shadow-lg"
+        style={{ aspectRatio: `${block.width} / ${block.height}` }}
+      >
         <iframe
           src={block.src}
           title={block.caption || "Photo from Getty Images"}
           loading="lazy"
           scrolling="no"
-          className="block w-full border-0"
-          style={{ aspectRatio: `${block.width} / ${block.height}` }}
+          width={block.width}
+          height={block.height}
+          className={`block border-0 transition-opacity duration-300 ${scale ? "opacity-100" : "opacity-0"}`}
+          style={{ transform: `scale(${scale ?? 1})`, transformOrigin: "0 0" }}
         />
       </div>
       <figcaption className="mt-3 text-center text-sm text-stone-600">
@@ -98,7 +121,7 @@ function ImageBlock({ block }: { block: Extract<StoryBlock, { type: "image" }> }
   return (
     <figure className="mx-auto max-w-4xl">
       <BigPictureLabel />
-      <div className="relative bg-white p-2 shadow-lg sm:p-3">
+      <div className="relative overflow-hidden rounded-xl shadow-lg">
         <img src={block.src} alt={block.alt} loading="lazy" className="block w-full" />
         {block.credit ? (
           <span className="absolute bottom-4 right-4 max-w-[80%] rounded bg-black/60 px-2 py-1 text-[11px] leading-tight text-white/90 sm:bottom-5 sm:right-5 sm:text-xs">
@@ -371,6 +394,10 @@ export function StoryView({ story }: { story: Story }) {
                     <GettyBlock block={b} />
                   ) : b.type === "image" ? (
                     <ImageBlock block={b} />
+                  ) : b.type === "illustration" ? (
+                    <IllustrationBlock block={b} />
+                  ) : b.type === "flight" ? (
+                    <FlightGlobe block={b} />
                   ) : (
                     <PhotosBlock photos={b.photos} indexOf={indexOf} onOpen={setOpen} />
                   )}

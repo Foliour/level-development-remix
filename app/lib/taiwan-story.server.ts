@@ -23,7 +23,27 @@ export type StoryBlock =
       credit: string;
       creditUrl: string | null;
     }
-  | { type: "photos"; photos: Photo[] };
+  | { type: "photos"; photos: Photo[] }
+  | { type: "illustration"; name: IllustrationName; caption: string }
+  | {
+      // Animated globe showing the flight path and day/night.
+      type: "flight";
+      from: FlightPlace;
+      to: FlightPlace;
+      departUtc: string; // ISO time of takeoff
+      arriveUtc: string; // ISO time of landing
+    };
+
+// Hand-drawn illustrations built into the site (app/components/illustrations.tsx).
+export const ILLUSTRATIONS = ["tanghulu"] as const;
+export type IllustrationName = (typeof ILLUSTRATIONS)[number];
+
+export type FlightPlace = {
+  name: string; // e.g. "Washington, D.C."
+  label: string; // e.g. "Home"
+  coords: [number, number]; // [longitude, latitude]
+  utcOffset: number; // hours, e.g. -5
+};
 
 export type Photo = { name: string; src: string; caption: string };
 
@@ -95,6 +115,18 @@ function parseGetty(block: any): StoryBlock | null {
     width,
     height,
     caption: str(block.caption),
+  };
+}
+
+function flightPlace(v: any): FlightPlace | null {
+  const c = Array.isArray(v?.coords) ? v.coords.map(Number) : [];
+  const offset = Number(v?.utcOffset);
+  if (c.length !== 2 || !c.every(Number.isFinite) || !Number.isFinite(offset)) return null;
+  return {
+    name: str(v.name),
+    label: str(v.label) || str(v.name),
+    coords: [c[0], c[1]],
+    utcOffset: offset,
   };
 }
 
@@ -175,6 +207,33 @@ export async function loadStory(bucket: R2Bucket): Promise<Story> {
             caption: str(b.caption),
             credit: str(b.credit),
             creditUrl: httpsUrl(b.creditUrl),
+          });
+          break;
+        }
+        case "illustration": {
+          const name = str(b.name) as IllustrationName;
+          if (ILLUSTRATIONS.includes(name)) {
+            blocks.push({ type: "illustration", name, caption: str(b.caption) });
+          } else {
+            console.log(`Skipping illustration "${name}" in "${title}": unknown name`);
+          }
+          break;
+        }
+        case "flight": {
+          const from = flightPlace(b.from);
+          const to = flightPlace(b.to);
+          const depart = Date.parse(str(b.departUtc));
+          const arrive = Date.parse(str(b.arriveUtc));
+          if (!from || !to || !(arrive > depart)) {
+            console.log(`Skipping flight block in "${title}": needs from, to, departUtc, arriveUtc`);
+            break;
+          }
+          blocks.push({
+            type: "flight",
+            from,
+            to,
+            departUtc: new Date(depart).toISOString(),
+            arriveUtc: new Date(arrive).toISOString(),
           });
           break;
         }
