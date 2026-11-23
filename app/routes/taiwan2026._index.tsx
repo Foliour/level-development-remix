@@ -10,6 +10,7 @@ import {
   clearSessionCookie,
   createSessionCookie,
   isAuthenticated,
+  isConfigured,
 } from "~/lib/taiwan-auth.server";
 import { loadStory } from "~/lib/taiwan-story.server";
 import { StoryView } from "~/components/taiwan-story";
@@ -26,14 +27,20 @@ export const headers: HeadersFunction = () => ({
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const env = context.cloudflare.env;
-  if (!(await isAuthenticated(request, env))) {
-    return { authed: false as const, story: null };
+  if (!isConfigured(env)) {
+    return { authed: false as const, ready: false as const, story: null };
   }
-  return { authed: true as const, story: await loadStory(env.PHOTOS) };
+  if (!(await isAuthenticated(request, env))) {
+    return { authed: false as const, ready: true as const, story: null };
+  }
+  return { authed: true as const, ready: true as const, story: await loadStory(env.PHOTOS) };
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
   const env = context.cloudflare.env;
+  if (!isConfigured(env)) {
+    return { error: "The scrapbook isn't open yet. Please check back soon." };
+  }
   const form = await request.formData();
 
   if (form.get("intent") === "logout") {
@@ -63,8 +70,28 @@ export default function Taiwan2026() {
   const data = useLoaderData<typeof loader>();
   return (
     <div className="min-h-screen bg-[#f6efe3] text-stone-800">
-      {data.authed && data.story ? <StoryView story={data.story} /> : <PasswordGate />}
+      {!data.ready ? (
+        <ComingSoon />
+      ) : data.authed && data.story ? (
+        <StoryView story={data.story} />
+      ) : (
+        <PasswordGate />
+      )}
     </div>
+  );
+}
+
+function ComingSoon() {
+  return (
+    <main className="flex min-h-screen items-center justify-center px-4">
+      <div className="w-full max-w-sm -rotate-1 rounded-sm bg-white p-8 text-center shadow-xl">
+        <p className="text-4xl" aria-hidden>
+          🇹🇼
+        </p>
+        <h1 className="mt-3 text-2xl font-bold tracking-tight">Taiwan 2026 Scrapbook</h1>
+        <p className="mt-2 text-stone-500">Coming soon! Check back in a little while.</p>
+      </div>
+    </main>
   );
 }
 

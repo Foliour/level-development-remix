@@ -10,12 +10,15 @@ const encoder = new TextEncoder();
 
 type AuthEnv = Pick<Env, "TAIWAN_PASSWORD" | "SESSION_SECRET">;
 
+// True once the password secrets and the R2 bucket binding are all set up.
+// Until then the page shows a "coming soon" message instead of erroring.
+export function isConfigured(env: Partial<Env>): boolean {
+  return Boolean(env.TAIWAN_PASSWORD && env.SESSION_SECRET && env.PHOTOS);
+}
+
 function assertConfigured(env: AuthEnv) {
   if (!env.TAIWAN_PASSWORD || !env.SESSION_SECRET) {
-    throw new Response(
-      "Scrapbook is not configured (missing TAIWAN_PASSWORD or SESSION_SECRET).",
-      { status: 500 },
-    );
+    throw new Response("Not available yet.", { status: 503 });
   }
 }
 
